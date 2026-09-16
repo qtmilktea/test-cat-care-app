@@ -138,3 +138,19 @@ if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serv
 render();setInterval(()=>{render();checkReminders()},30000);checkReminders();
 </script>
 </body></html>
+<!-- 1. 自訂下拉選單項目的設定區塊 -->
+<div class="card p-3 mb-4">
+  <h5>⚙️ 自訂照護下拉選單</h5>
+  <div class="input-group mb-2">
+    <input type="text" id="new-care-item-input" class="form-control" placeholder="新增照護項目（如：梳毛、刷牙）">
+    <button class="btn btn-primary" onclick="addCustomCareItem()">新增選項</button>
+  </div>
+  <div id="care-items-tags" class="d-flex flex-wrap gap-1">
+    <!-- 動態生成目前的選項標籤與刪除按鈕 -->
+  </div>
+</div>
+
+<!-- 2. 貓咪卡片容器（同一隻貓咪在同一個框框內） -->
+<div id="cat-cards-container" class="d-flex flex-column gap-3">
+  <!-- JavaScript 會動態在這裡生成貓咪框框 -->
+</div>
