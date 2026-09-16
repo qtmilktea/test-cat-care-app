@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#fff8f1">
+  <meta name="description" content="手機友善的貓咪照護管理工具">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>貓咪照護</title>
+  <style>
+    :root{--bg:#fff8f1;--card:#fff;--text:#352b27;--muted:#897a72;--line:#eee2d8;--accent:#e98b62;--accent2:#f4b183;--ok:#63a67d;--danger:#d85d5d;--shadow:0 8px 28px rgba(80,50,30,.08)}
+    *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif}
+    button,input,select,textarea{font:inherit} button{border:0;cursor:pointer}
+    .app{max-width:680px;margin:auto;min-height:100vh;padding-bottom:88px}
+    header{padding:24px 18px 12px;display:flex;justify-content:space-between;align-items:center}
+    h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted);font-size:14px}
+    .date-pill{background:#fff;border:1px solid var(--line);border-radius:18px;padding:8px 11px;font-size:13px}
+    main{padding:8px 16px}.screen{display:none}.screen.active{display:block}
+    .summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 18px}
+    .stat{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow)}.stat b{font-size:25px}.stat span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}.section-title h2{font-size:18px;margin:0}
+    .primary{background:var(--accent);color:#fff;border-radius:15px;padding:11px 15px;font-weight:700}
+    .outline{background:#fff;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:10px 13px}
+    .cat-card{background:#fff;border-radius:22px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+    .cat-head{display:flex;gap:12px;align-items:center}.avatar{width:54px;height:54px;border-radius:18px;background:#f9e3d5;display:grid;place-items:center;font-size:29px;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}
+    .cat-name{font-size:18px;font-weight:800}.cat-note{font-size:12px;color:var(--muted);margin-top:3px}
+    .task{display:flex;align-items:center;gap:11px;border-top:1px solid #f2e9e3;padding:13px 0 2px;margin-top:12px}
+    .check{width:30px;height:30px;border-radius:10px;background:#f6eee8;border:1px solid var(--line);font-size:16px;flex:none}.check.done{background:var(--ok);color:white;border-color:var(--ok)}
+    .task-main{flex:1}.task-name{font-weight:700}.task-time{font-size:12px;color:var(--muted);margin-top:2px}.task.done .task-name{text-decoration:line-through;color:#9a918c}
+    .task-actions button{background:transparent;color:#a3948b;padding:5px;font-size:12px}
+    .empty{background:#fff;border:1px dashed var(--line);border-radius:20px;text-align:center;padding:32px 18px;color:var(--muted)}
+    .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(680px,100%);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:5}
+    .nav{background:transparent;color:#998b84;padding:7px 3px;border-radius:14px;font-size:12px}.nav .ico{font-size:20px;display:block;margin-bottom:2px}.nav.active{color:var(--accent);background:#fff4ed;font-weight:700}
+    .modal{display:none;position:fixed;inset:0;background:rgba(40,25,18,.35);z-index:10;align-items:flex-end}.modal.show{display:flex}.sheet{width:min(680px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:26px 26px 0 0;padding:20px 18px calc(28px + env(safe-area-inset-bottom));margin:auto 0 0}
+    .sheet h2{margin:0 0 16px}.form-row{margin:12px 0}.form-row label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}.form-row input,.form-row select,.form-row textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px;background:#fff}.form-row textarea{min-height:76px;resize:vertical}
+    .actions{display:flex;gap:9px;margin-top:18px}.actions>*{flex:1}
+    .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#352b27;color:#fff;border-radius:14px;padding:11px 15px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1}
+    .history-item{background:#fff;border-radius:18px;padding:14px 15px;margin:9px 0;box-shadow:var(--shadow);display:flex;justify-content:space-between}.muted{color:var(--muted);font-size:13px}
+    .setting{background:#fff;border-radius:18px;padding:15px;margin:10px 0;display:flex;justify-content:space-between;align-items:center}.danger{color:var(--danger)}
+    @media(min-width:681px){.bottom{bottom:12px;border:1px solid var(--line);border-radius:22px}.app{padding-bottom:110px}}
+  </style>
+</head>
+<body>
+<div class="app">
+<header><div><h1>🐾 貓咪照護</h1><div class="subtitle">今天也一起好好照顧牠們</div></div><div class="date-pill" id="today"></div></header>
+<main>
+<section id="screen-today" class="screen active">
+  <div class="summary"><div class="stat"><b id="doneCount">0</b><span>今日已完成</span></div><div class="stat"><b id="todoCount">0</b><span>待完成</span></div></div>
+  <div class="section-title"><h2>今日照護</h2><button class="primary" onclick="openTaskModal()">＋ 提醒</button></div>
+  <div id="todayList"></div>
+</section>
+<section id="screen-cats" class="screen">
+  <div class="section-title"><h2>我的貓咪</h2><button class="primary" onclick="openCatModal()">＋ 貓咪</button></div><div id="catList"></div>
+</section>
+<section id="screen-history" class="screen">
+  <div class="section-title"><h2>照護紀錄</h2></div><div id="historyList"></div>
+</section>
+<section id="screen-settings" class="screen">
+  <div class="section-title"><h2>設定</h2></div>
+  <div class="setting"><div><b>每日重置時間</b><div class="muted">以此時間作為新的一天開始</div></div><b>06:00</b></div>
+  <div class="setting"><div><b>通知</b><div class="muted" id="notifyStatus">尚未設定</div></div><button class="outline" onclick="requestNotify()">開啟</button></div>
+  <div class="setting"><div><b>資料</b><div class="muted">資料儲存在此裝置</div></div><button class="outline" onclick="exportData()">備份</button></div>
+  <div class="setting"><div><b>還原備份</b><div class="muted">匯入先前下載的 JSON</div></div><button class="outline" onclick="document.getElementById('importFile').click()">匯入</button></div>
+  <input id="importFile" type="file" accept=".json,application/json" hidden onchange="importData(event)">
+  <div class="setting"><div><b class="danger">清除所有資料</b><div class="muted">無法復原，請先備份</div></div><button class="outline danger" onclick="clearAll()">清除</button></div>
+</section>
+</main>
+<nav class="bottom">
+<button class="nav active" data-screen="today"><span class="ico">🏠</span>今日</button>
+<button class="nav" data-screen="cats"><span class="ico">🐱</span>貓咪</button>
+<button class="nav" data-screen="history"><span class="ico">📋</span>紀錄</button>
+<button class="nav" data-screen="settings"><span class="ico">⚙️</span>設定</button>
+</nav>
+</div>
+
+<div class="modal" id="catModal"><div class="sheet"><h2 id="catModalTitle">新增貓咪</h2>
+<form id="catForm" onsubmit="saveCat(event)"><input type="hidden" id="catId">
+<div class="form-row"><label>名字</label><input id="catName" required maxlength="30" placeholder="例如：小橘"></div>
+<div class="form-row"><label>備註</label><textarea id="catNote" maxlength="200" placeholder="例如：需要每日吃藥"></textarea></div>
+<div class="actions"><button type="button" class="outline" onclick="closeModal('catModal')">取消</button><button class="primary">儲存</button></div></form></div></div>
+
+<div class="modal" id="taskModal"><div class="sheet"><h2 id="taskModalTitle">新增照護提醒</h2>
+<form id="taskForm" onsubmit="saveTask(event)"><input type="hidden" id="taskId">
+<div class="form-row"><label>照護事項</label><input id="taskName" required maxlength="50" placeholder="例如：吃藥、餵食、補水"></div>
+<div class="form-row"><label>貓咪</label><select id="taskCat" required></select></div>
+<div class="form-row"><label>時間</label><input id="taskTime" type="time" required></div>
+<div class="form-row"><label>重複</label><select id="taskRepeat"><option value="daily">每天</option><option value="weekdays">週一至週五</option><option value="weekly">每週</option></select></div>
+<div class="form-row"><label>提前提醒</label><select id="taskAdvance"><option value="0">準時提醒</option><option value="5">提前 5 分鐘</option><option value="10" selected>提前 10 分鐘</option><option value="30">提前 30 分鐘</option></select></div>
+<div class="actions"><button type="button" class="outline" onclick="closeModal('taskModal')">取消</button><button class="primary">儲存</button></div></form></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='catCareV1', RESET_HOUR=6;
+let db=JSON.parse(localStorage.getItem(KEY)||'{"cats":[],"tasks":[],"logs":{}}');
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function pad(n){return String(n).padStart(2,'0')}
+function careDate(d=new Date()){let x=new Date(d); if(x.getHours()<RESET_HOUR)x.setDate(x.getDate()-1); return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`}
+function fmtDate(s){let [y,m,d]=s.split('-');return `${y}/${m}/${d}`}
+function todayStr(){return careDate()}
+function taskForDate(t,date){let dow=new Date(date+'T12:00:00').getDay(); if(t.repeat==='weekdays'&&(dow===0||dow===6))return false; if(t.repeat==='weekly'){let created=t.createdAt?new Date(t.createdAt).getDay():dow;return dow===created} return true}
+function completed(tid,date=todayStr()){return !!db.logs[date]?.[tid]}
+function render(){
+ $('today').textContent=fmtDate(todayStr());
+ let tasks=db.tasks.filter(t=>taskForDate(t,todayStr())).sort((a,b)=>a.time.localeCompare(b.time));
+ let done=tasks.filter(t=>completed(t.id)).length;$('doneCount').textContent=done;$('todoCount').textContent=tasks.length-done;
+ let html='';
+ if(!tasks.length) html='<div class="empty">今天還沒有照護事項<br><br><button class="primary" onclick="openTaskModal()">＋ 新增第一個提醒</button></div>';
+ else {let lastCat=''; for(const t of tasks){let c=db.cats.find(x=>x.id===t.catId);if(!c)continue;if(c.id!==lastCat){if(lastCat)html+='</div>';html+=`<div class="cat-card"><div class="cat-head"><div class="avatar">🐱</div><div><div class="cat-name">${esc(c.name)}</div><div class="cat-note">${esc(c.note||'')}</div></div></div>`;lastCat=c.id} let dn=completed(t.id);html+=`<div class="task ${dn?'done':''}"><button class="check ${dn?'done':''}" onclick="toggleTask('${t.id}')">${dn?'✓':''}</button><div class="task-main"><div class="task-name">${esc(t.name)}</div><div class="task-time">⏰ ${t.time}${t.advance>0?' · 提前 '+t.advance+' 分鐘':''}</div></div><div class="task-actions"><button onclick="editTask('${t.id}')">編輯</button></div></div>`} if(lastCat)html+='</div>'}
+ $('todayList').innerHTML=html;
+ $('catList').innerHTML=db.cats.length?db.cats.map(c=>`<div class="cat-card"><div class="cat-head"><div class="avatar">🐱</div><div style="flex:1"><div class="cat-name">${esc(c.name)}</div><div class="cat-note">${esc(c.note||'尚無備註')}</div></div><button class="outline" onclick="editCat('${c.id}')">編輯</button></div><div class="section-title"><span class="muted">${db.tasks.filter(t=>t.catId===c.id).length} 個照護事項</span><button class="outline" onclick="openTaskModal(null,'${c.id}')">＋ 新增</button></div></div>`).join(''):'<div class="empty">還沒有貓咪，先新增一隻吧 🐱<br><br><button class="primary" onclick="openCatModal()">＋ 新增貓咪</button></div>';
+ renderHistory();updateNotify();
+}
+function renderHistory(){
+ let dates=Object.keys(db.logs).sort().reverse().slice(0,30), arr=[];
+ for(const d of dates){for(const tid of Object.keys(db.logs[d]||{})){let t=db.tasks.find(x=>x.id===tid),c=t&&db.cats.find(x=>x.id===t.catId);if(t&&c)arr.push(`<div class="history-item"><div><b>${esc(c.name)} · ${esc(t.name)}</b><div class="muted">${fmtDate(d)} · ${t.time}</div></div><span>✓</span></div>`)}}
+ $('historyList').innerHTML=arr.length?arr.join(''):'<div class="empty">目前還沒有完成紀錄。</div>';
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function toggleTask(id){let d=todayStr();db.logs[d]??={};if(db.logs[d][id])delete db.logs[d][id];else db.logs[d][id]=Date.now();save();render()}
+function openCatModal(id=null){$('catForm').reset();$('catId').value=id||'';$('catModalTitle').textContent=id?'編輯貓咪':'新增貓咪';if(id){let c=db.cats.find(x=>x.id===id);$('catName').value=c.name;$('catNote').value=c.note||''}$('catModal').classList.add('show')}
+function editCat(id){openCatModal(id)}
+function saveCat(e){e.preventDefault();let id=$('catId').value;if(id){let c=db.cats.find(x=>x.id===id);c.name=$('catName').value.trim();c.note=$('catNote').value.trim()}else db.cats.push({id:uid(),name:$('catName').value.trim(),note:$('catNote').value.trim(),createdAt:new Date().toISOString()});save();closeModal('catModal');render();toast('已儲存貓咪')}
+function openTaskModal(id=null,catId=''){$('taskForm').reset();$('taskId').value=id||'';$('taskModalTitle').textContent=id?'編輯照護提醒':'新增照護提醒';$('taskCat').innerHTML=db.cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');if(id){let t=db.tasks.find(x=>x.id===id);$('taskName').value=t.name;$('taskCat').value=t.catId;$('taskTime').value=t.time;$('taskRepeat').value=t.repeat;$('taskAdvance').value=t.advance||0}else if(catId)$('taskCat').value=catId;if(!db.cats.length){closeModal('taskModal');toast('請先新增貓咪');openCatModal();return}$('taskModal').classList.add('show')}
+function editTask(id){openTaskModal(id)}
+function saveTask(e){e.preventDefault();let id=$('taskId').value,obj={name:$('taskName').value.trim(),catId:$('taskCat').value,time:$('taskTime').value,repeat:$('taskRepeat').value,advance:+$('taskAdvance').value};if(id){Object.assign(db.tasks.find(x=>x.id===id),obj)}else db.tasks.push({id:uid(),...obj,createdAt:new Date().toISOString()});save();closeModal('taskModal');render();toast('提醒已儲存')}
+function closeModal(id){$(id).classList.remove('show')}
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$('screen-'+b.dataset.screen).classList.add('active');render()});
+async function requestNotify(){if(!('Notification'in window)){toast('此瀏覽器不支援通知');return}let p=await Notification.requestPermission();toast(p==='granted'?'通知已開啟':'通知未開啟');updateNotify()}
+function updateNotify(){$('notifyStatus').textContent='Notification' in window?(Notification.permission==='granted'?'已開啟':'尚未開啟'):'瀏覽器不支援'}
+function checkReminders(){if(!('Notification'in window)||Notification.permission!=='granted')return;let now=new Date(),d=careDate(now),mins=now.getHours()*60+now.getMinutes();db.tasks.filter(t=>taskForDate(t,d)).forEach(t=>{let [h,m]=t.time.split(':').map(Number),target=h*60+m-(t.advance||0);if(target===mins&&!completed(t.id,d)){new Notification(`🐱 ${db.cats.find(c=>c.id===t.catId)?.name||'貓咪'}`,{body:`${t.name}｜${t.time}`})}})}
+function exportData(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cat-care-backup.json';a.click();URL.revokeObjectURL(a.href);toast('備份已下載')}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.cats||!x.tasks)throw 0;db=x;save();render();toast('還原成功')}catch{toast('備份檔格式不正確')}};r.readAsText(f)}
+function clearAll(){if(confirm('確定清除所有貓咪、提醒與紀錄？')){db={cats:[],tasks:[],logs:{}};save();render();toast('資料已清除')}}
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+render();setInterval(()=>{render();checkReminders()},30000);checkReminders();
+</script>
+</body></html>
